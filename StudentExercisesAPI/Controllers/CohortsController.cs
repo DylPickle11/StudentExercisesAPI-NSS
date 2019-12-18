@@ -31,7 +31,7 @@ namespace StudentExercisesAPI.Controllers
         }
 
         [HttpGet] // Code for getting a list of cohorts
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] string name)
         {
             using (SqlConnection conn = Connection)
             {
@@ -45,6 +45,7 @@ namespace StudentExercisesAPI.Controllers
                                           s.SlackHandle As StudentSlackHandle,
                                           s.CohortId AS StudentCohortId,
                                           c.[Name],
+                                          c.Id,
                                           i.Id AS InstructorId,
                                           i.FirstName AS InstructorFirstName,
                                           i.LastName AS  InstructorLastName,
@@ -52,7 +53,14 @@ namespace StudentExercisesAPI.Controllers
                                           i.CohortId As InstructorCohortId
                                           FROM Student s
                                           LEFT JOIN Cohort c ON  s.CohortId = c.Id
-                                          LEFT JOIN Instructor i ON i.CohortId = c.Id;";
+                                          LEFT JOIN Instructor i ON i.CohortId = c.Id
+                                          WHERE 1=1";
+
+                    if (name != null)
+                    {
+                        cmd.CommandText += " AND [Name] LIKE @Name";
+                        cmd.Parameters.Add(new SqlParameter("@Name", "%" + name + "%"));
+                    }
                     SqlDataReader reader = cmd.ExecuteReader();
 
                     List<Instructor> instructors = new List<Instructor>();
@@ -63,6 +71,7 @@ namespace StudentExercisesAPI.Controllers
                     {
                         cohort = new Cohort
                         {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Instructors = instructors,
                             Students = students

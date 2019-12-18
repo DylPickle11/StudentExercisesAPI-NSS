@@ -31,7 +31,7 @@ namespace StudentExercisesAPI.Controllers
         }
 
         [HttpGet] // Code for getting a list of exercises
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] string firstName, string lastName, string slackHandle)
         {
             using (SqlConnection conn = Connection)
             {
@@ -46,7 +46,26 @@ namespace StudentExercisesAPI.Controllers
                                       i.Speciality,
                                       c.Id AS CoId,
                                       c.[Name]
-                                      FROM instructor i LEFT JOIN Cohort c ON c.Id = i.CohortId; ";
+                                      FROM instructor i LEFT JOIN Cohort c ON c.Id = i.CohortId ";
+
+
+                    if (firstName != null)
+                    {
+                        cmd.CommandText += " AND FirstName LIKE @FirstName";
+                        cmd.Parameters.Add(new SqlParameter("@FirstName", "%" + firstName + "%"));
+                    }
+
+                    if (lastName != null)
+                    {
+                        cmd.CommandText += " AND LastName LIKE @LastName";
+                        cmd.Parameters.Add(new SqlParameter("@LastName", "%" + lastName + "%"));
+                    }
+
+                    if (slackHandle != null)
+                    {
+                        cmd.CommandText += " AND SlackHandle LIKE @SlackHandle";
+                        cmd.Parameters.Add(new SqlParameter("@SlackHandle", "%" + slackHandle + "%"));
+                    }
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Instructor> instructors = new List<Instructor>();
 

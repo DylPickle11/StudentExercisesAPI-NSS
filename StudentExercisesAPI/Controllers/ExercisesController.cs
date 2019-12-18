@@ -31,14 +31,27 @@ namespace StudentExercisesAPI.Controllers
         }
 
         [HttpGet] // Code for getting a list of exercises
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] string name ,string languages)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT * FROM Exercise";
+                    cmd.CommandText = "SELECT * FROM Exercise WHERE 1=1";
+
+                    if (name != null)
+                    {
+                        cmd.CommandText += " AND Name LIKE @Name";
+                        cmd.Parameters.Add(new SqlParameter("@Name", "%" + name + "%"));
+                    }
+
+                    if (languages != null)
+                    {
+                        cmd.CommandText += " AND Language LIKE @Language";
+                        cmd.Parameters.Add(new SqlParameter("@Language", "%" + languages + "%"));
+                    }
+
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Exercise> exercises = new List<Exercise>();
 

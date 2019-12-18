@@ -31,14 +31,14 @@ namespace StudentExercisesAPI.Controllers
         }
 
         [HttpGet] // Code for getting a list of exercises
-        public async Task<IActionResult> Get(string include)
+        public async Task<IActionResult> Get([FromQuery] string firstName, string lastName, string slackHandle)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-       
+                
                     cmd.CommandText = @"SELECT s.Id, 
                                       s.FirstName,
                                       s.LastName, 
@@ -46,7 +46,27 @@ namespace StudentExercisesAPI.Controllers
                                       s.CohortId,
                                       c.Id AS CoId,
                                       c.[Name]
-                                      FROM Student s LEFT JOIN Cohort c ON c.Id = s.CohortId; ";
+                                      FROM Student s LEFT JOIN Cohort c ON c.Id = s.CohortId
+                                      WHERE 1=1";
+
+                    if (firstName != null) 
+                    {
+                        cmd.CommandText += " AND FirstName LIKE @FirstName";
+                        cmd.Parameters.Add(new SqlParameter("@FirstName", "%" + firstName +"%"));
+                    }
+
+                    if (lastName != null)
+                    {
+                        cmd.CommandText += " AND LastName LIKE @LastName";
+                        cmd.Parameters.Add(new SqlParameter("@LastName", "%" + lastName + "%"));
+                    }
+
+                    if (slackHandle != null)
+                    {
+                        cmd.CommandText += " AND SlackHandle LIKE @SlackHandle";
+                        cmd.Parameters.Add(new SqlParameter("@SlackHandle", "%" + slackHandle + "%"));
+                    }
+
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Student> students = new List<Student>();
 
